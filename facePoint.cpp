@@ -1,8 +1,4 @@
-#include "header.h"
 #include "facePoint.h"
-
-using namespace std;
-
 
 
 bool FacePoints::init_asm()
@@ -17,52 +13,53 @@ bool FacePoints::init_asm()
 
 void FacePoints::free_shape_memeory(asm_shape** shapes)
 {
-	delete [](*shapes);
+	delete[](*shapes);
 }
 
+void FacePoints::load_model(){
 
-FacePoints::FacePoints(IplImage* img)
-{
-	
-	pos=new int[10];
+	if (!init_asm())std::cout << "lost asm files" << std::endl;
+}
 
-	width=img->width;
+void FacePoints::facePoint_init(IplImage* img){
 
-	height=img->height;
+	pos = new int[10];
 
-	gray_img=cvCreateImage(cvSize(width,height),8,1);
+	width = img->width;
 
-	if(img->nChannels!=1)
+	height = img->height;
+
+	gray_img = cvCreateImage(cvSize(width, height), 8, 1);
+
+	if (img->nChannels != 1)
 	{
-		cout<<"ERROE£ºPlease input a gray image file!"<<endl;
+		std::cout << "ERROE£ºPlease input a gray image file!" << std::endl;
 	}
 	else
 	{
-		cvCopy(img,gray_img);
+		cvCopy(img, gray_img);
 
-		facePoint=new _Rect_Point[MAX_FACE_NUM_POINT_P_USTC];
+		facePoint = new _Rect_Point[MAX_FACE_NUM_POINT_P_USTC];
 
-		facepos=new new_Rect[MAX_FACE_NUM_POINT_P_USTC];
+		facepos = new new_Rect[MAX_FACE_NUM_POINT_P_USTC];
 
-		if(!init_asm())cout<<"lost asm files"<<endl;
+		detshapes = new asm_shape[MAX_FACE_NUM_POINT_P_USTC];
 
-		detshapes=new asm_shape[MAX_FACE_NUM_POINT_P_USTC];
-
-		shapes=new asm_shape[MAX_FACE_NUM_POINT_P_USTC];
+		shapes = new asm_shape[MAX_FACE_NUM_POINT_P_USTC];
 	}
 }
 
-FacePoints::~FacePoints()
-{
+void FacePoints::facePoint_release(){
+
 	delete[] pos;
 
-	if(gray_img)
+	if (gray_img)
 		cvReleaseImage(&gray_img);
 
-	if(facePoint)
+	if (facePoint)
 		delete[] facePoint;
 
-	if(facepos)
+	if (facepos)
 		delete facepos;
 
 	delete[] shapes;
@@ -70,70 +67,70 @@ FacePoints::~FacePoints()
 	free_shape_memeory(&detshapes);
 }
 
-int FacePoints::runFacePoints(int facesnum,int rect[MAX_FACE_NUM_POINT_P_USTC*4])
+int FacePoints::runFacePoints(int facesnum, int rect[MAX_FACE_NUM_POINT_P_USTC * 4])
 {
-	int count=0;
+	int count = 0;
 
-	int nFaces=facesnum;
+	int nFaces = facesnum;
 
-	for(int i=0;i<nFaces;i++)
+	for (int i = 0; i < nFaces; i++)
 	{
 		detshapes[i].Resize(2);
 
-		detshapes[i][0].x=(float)rect[count++];
-		detshapes[i][0].y=(float)rect[count++];
-		detshapes[i][1].x=(float)rect[count++];
-		detshapes[i][1].y=(float)rect[count++];
+		detshapes[i][0].x = (float)rect[count++];
+		detshapes[i][0].y = (float)rect[count++];
+		detshapes[i][1].x = (float)rect[count++];
+		detshapes[i][1].y = (float)rect[count++];
 	}
-	
-	for(int i=0;i<nFaces;i++)
+
+	for (int i = 0; i < nFaces; i++)
 	{
 		InitShapeFromDetBox(shapes[i], detshapes[i], fit_asm.GetMappingDetShape(), fit_asm.GetMeanFaceWidth());
 	}
-	
 
-	fit_asm.Fitting2(shapes, nFaces, gray_img,NUMUSTC_P_USTC);
 
-	for(int i=0;i<nFaces;i++)
+	fit_asm.Fitting2(shapes, nFaces, gray_img, NUMUSTC_P_USTC);
+
+	for (int i = 0; i < nFaces; i++)
 	{
-		facePoint[i].left_eye_x=cvRound((shapes[i])[31].x);
-		facePoint[i].left_eye_y=cvRound((shapes[i])[31].y);
+		facePoint[i].left_eye_x = cvRound((shapes[i])[31].x);
+		facePoint[i].left_eye_y = cvRound((shapes[i])[31].y);
 
-		facePoint[i].right_eye_x=cvRound((shapes[i])[36].x);
-		facePoint[i].right_eye_y=cvRound((shapes[i])[36].y);
+		facePoint[i].right_eye_x = cvRound((shapes[i])[36].x);
+		facePoint[i].right_eye_y = cvRound((shapes[i])[36].y);
 
 
-		facePoint[i].nose_x=cvRound((shapes[i])[67].x);
-		facePoint[i].nose_y=cvRound((shapes[i])[67].y);
+		facePoint[i].nose_x = cvRound((shapes[i])[67].x);
+		facePoint[i].nose_y = cvRound((shapes[i])[67].y);
 
-		facePoint[i].left_mouth_x=cvRound((shapes[i])[48].x);
-		facePoint[i].left_mouth_y=cvRound((shapes[i])[48].y);
+		facePoint[i].left_mouth_x = cvRound((shapes[i])[48].x);
+		facePoint[i].left_mouth_y = cvRound((shapes[i])[48].y);
 
-		facePoint[i].right_mouth_x=cvRound((shapes[i])[54].x);
-		facePoint[i].right_mouth_y=cvRound((shapes[i])[54].y);
+		facePoint[i].right_mouth_x = cvRound((shapes[i])[54].x);
+		facePoint[i].right_mouth_y = cvRound((shapes[i])[54].y);
 	}
 
 	return 0;
 }
 
-int* FacePoints::getFacePoints()
+
+void FacePoints::getFacePoints(int* pos)
 {
-	int faceIdx=0;
+	int faceIdx = 0;
 
-	pos[0]=facePoint[faceIdx].left_eye_x;
-	pos[1]=facePoint[faceIdx].left_eye_y;
+	pos[0] = facePoint[faceIdx].left_eye_x;
+	pos[1] = facePoint[faceIdx].left_eye_y;
 
-	pos[2]=facePoint[faceIdx].right_eye_x;
-	pos[3]=facePoint[faceIdx].right_eye_y;
+	pos[2] = facePoint[faceIdx].right_eye_x;
+	pos[3] = facePoint[faceIdx].right_eye_y;
 
-	pos[4]=facePoint[faceIdx].nose_x;
-	pos[5]=facePoint[faceIdx].nose_y;
+	pos[4] = facePoint[faceIdx].nose_x;
+	pos[5] = facePoint[faceIdx].nose_y;
 
-	pos[6]=facePoint[faceIdx].left_mouth_x;
-	pos[7]=facePoint[faceIdx].left_mouth_y;
+	pos[6] = facePoint[faceIdx].left_mouth_x;
+	pos[7] = facePoint[faceIdx].left_mouth_y;
 
-	pos[8]=facePoint[faceIdx].right_mouth_x;
-	pos[9]=facePoint[faceIdx].right_mouth_y;
+	pos[8] = facePoint[faceIdx].right_mouth_x;
+	pos[9] = facePoint[faceIdx].right_mouth_y;
 
-	return pos;
 }

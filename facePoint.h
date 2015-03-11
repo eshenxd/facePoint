@@ -1,13 +1,13 @@
-#pragma once
-#ifndef GETFACEPOINT_H
+#ifndef _FACE_POINT_H
+#define _FACE_POINT_H
 
-#define GETFACEPOINT_H
+#include "header.h"
 
 #include "../include/asmfitting.h"
 #include "../include/asmbuilding.h"
 #include "../include/asmlibrary.h"
 
-#pragma comment(lib, "../lib/asmlibrary.lib")
+#pragma comment(lib,"../lib/asmlibrary.lib")
 
 #define MAX_FACE_NUM_POINT_P_USTC  1 //一帧中最多的人脸数
 #define  NUMUSTC_P_USTC 30
@@ -17,7 +17,8 @@
 #define PointWidth_P_USTC 300
 #define PointHeight_P_USTC 300
 
-struct new_Rect 
+
+struct new_Rect
 {
 
 	int left;
@@ -48,27 +49,30 @@ struct _Rect_Point
 class FacePoints
 {
 public:
-	FacePoints(IplImage*);/*这里传入的应是上一模块得到的灰度图像*/
-	~FacePoints();
+	void load_model();//读ASM模板
 
-	int runFacePoints(int , int* rect);
+	void facePoint_init(IplImage* );//初始化特征点定位器，这里需要传入灰度图像
+
+	int runFacePoints(int, int* rect);//定位特征点，rect为人脸在整副图像中的位置，int为图像中人脸的个数
 
 	/*
-	   输出结果是一个10维数组，表示5个点的坐标
-	   顺序依次是两眼，鼻尖，两个嘴角
+	参数是一个10维数组，表示5个点的坐标
+	顺序依次是两眼，鼻尖，两个嘴角
 	*/
-	int* getFacePoints();
+	void getFacePoints(int* );
+
+	void facePoint_release();//释放特征点定位器
 
 protected:
 private:
-	asm_shape *shapes, *detshapes ;
+	asm_shape *shapes, *detshapes;
 
 	asmfitting fit_asm;
 
 	_Rect_Point* facePoint;
 	new_Rect* facepos;
 
-	int width,height;
+	int width, height;
 
 	IplImage* gray_img;
 
